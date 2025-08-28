@@ -138,21 +138,39 @@
             text-align: center;
         }
 
+        /* Animations */
         @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
+        /* Effet de particules flottantes */
         .particle {
             position: fixed;
             width: 6px;
@@ -166,67 +184,131 @@
         }
 
         @keyframes float {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.7; }
-            90% { opacity: 0.7; }
-            100% { transform: translateY(-10px) rotate(360deg); opacity: 0; }
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-10px) rotate(360deg);
+                opacity: 0;
+            }
         }
 
+        /* Responsive Design amélioré */
         @media (max-width: 768px) {
-            .container { padding: 30px 15px; }
-            .buttons-container { grid-template-columns: 1fr; gap: 25px; margin-bottom: 20px; }
-            .subtitle { margin-bottom: 35px; }
+            .container {
+                padding: 30px 15px;
+            }
+            
+            .buttons-container {
+                grid-template-columns: 1fr;
+                gap: 25px;
+                margin-bottom: 20px;
+            }
+            
+            .subtitle {
+                margin-bottom: 35px;
+            }
         }
 
         @media (max-width: 480px) {
-            body { padding: 10px; }
-            .container { padding: 20px 10px; }
-            .title { margin-bottom: 15px; letter-spacing: 1px; }
-            .subtitle { margin-bottom: 25px; }
-            .game-button { padding: 18px 25px; min-height: 65px; border-radius: 12px; }
-            .buttons-container { gap: 20px; }
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px 10px;
+            }
+            
+            .title {
+                margin-bottom: 15px;
+                letter-spacing: 1px;
+            }
+            
+            .subtitle {
+                margin-bottom: 25px;
+            }
+            
+            .game-button {
+                padding: 18px 25px;
+                min-height: 65px;
+                border-radius: 12px;
+            }
+
+            .buttons-container {
+                gap: 20px;
+            }
         }
 
         @media (max-width: 320px) {
-            .game-button { padding: 15px 20px; min-height: 60px; max-width: 100%; }
+            .game-button {
+                padding: 15px 20px;
+                min-height: 60px;
+                max-width: 100%;
+            }
         }
 
+        /* Amélioration pour les grands écrans */
         @media (min-width: 1200px) {
-            .buttons-container { grid-template-columns: repeat(3, 1fr); max-width: 900px; }
+            .buttons-container {
+                grid-template-columns: repeat(3, 1fr);
+                max-width: 900px;
+            }
         }
 
+        /* Améliorations accessibilité */
         @media (prefers-reduced-motion: reduce) {
-            * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
-            .particle { display: none; }
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            .particle {
+                display: none;
+            }
         }
 
+        /* Mode sombre automatique */
         @media (prefers-color-scheme: dark) {
-            .title { text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.9); }
-            .subtitle { text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7); }
+            .title {
+                text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.9);
+            }
+            
+            .subtitle {
+                text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title">JEUX DYSPRAXIQUES</h1>
+        <h1 class="title">PORTAIL DE JEUX</h1>
         <p class="subtitle">Choisissez votre aventure</p>
         
         <div class="buttons-container">
-            <a href="./SpaceInvader_EBEP.html" class="game-button space-invaders">
+            <a href="SpaceInavder_EBEP.html" class="game-button space-invaders">
                 <span>🚀 Space Invaders</span>
             </a>
             
-            <a href="./Pacman_EPEB.html" class="game-button pacman">
+            <a href="Pacman_EPEB.html" class="game-button pacman">
                 <span>👾 Pac Man</span>
             </a>
             
-            <a href="./Paint_Responsive_EBEP.html" class="game-button paint">
+            <a href="Paint_Responsive_EBEP.html" class="game-button paint">
                 <span>🎨 Paint</span>
             </a>
         </div>
     </div>
 
     <script>
+        // Création des particules flottantes
         function createParticle() {
             const particle = document.createElement('div');
             particle.className = 'particle';
@@ -234,11 +316,13 @@
             particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
             particle.style.animationDelay = Math.random() * 2 + 's';
             
+            // Couleurs aléatoires de la charte graphique
             const colors = ['#6BBDB7', '#6697C2', '#00B490', '#B4007D', '#00549F'];
             particle.style.background = colors[Math.floor(Math.random() * colors.length)];
             
             document.body.appendChild(particle);
             
+            // Supprimer la particule après animation
             setTimeout(() => {
                 if (particle.parentNode) {
                     particle.parentNode.removeChild(particle);
@@ -246,8 +330,10 @@
             }, 6000);
         }
 
+        // Créer des particules à intervalles réguliers
         setInterval(createParticle, 800);
 
+        // Effet sonore au survol des boutons
         document.querySelectorAll('.game-button').forEach(button => {
             button.addEventListener('mouseenter', function() {
                 this.style.transform = 'translateY(-3px) scale(1.02)';
@@ -257,13 +343,15 @@
                 this.style.transform = 'translateY(0) scale(1)';
             });
             
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function(e) {
+                // Effet de clic
                 this.style.transform = 'translateY(0) scale(0.98)';
                 setTimeout(() => {
                     this.style.transform = 'translateY(-3px) scale(1.02)';
                 }, 100);
             });
 
+            // Support tactile
             button.addEventListener('touchstart', function() {
                 this.style.transform = 'translateY(-2px) scale(1.01)';
             });
@@ -273,6 +361,7 @@
             });
         });
 
+        // Animation d'apparition séquentielle des boutons
         window.addEventListener('load', function() {
             const buttons = document.querySelectorAll('.game-button');
             buttons.forEach((button, index) => {
@@ -287,14 +376,18 @@
             });
         });
 
+        // Gestion de l'orientation sur mobile
         window.addEventListener('orientationchange', function() {
             setTimeout(() => {
                 window.scrollTo(0, 0);
             }, 100);
         });
 
+        // Optimisation des performances
         let isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        
         if (isReducedMotion) {
+            // Désactiver les particules si l'utilisateur préfère moins d'animations
             clearInterval();
         }
     </script>
