@@ -349,10 +349,9 @@
             <ul>
                 <li>Guidez Pac-Man de l'entrée (E) vers la sortie (S)</li>
                 <li>Utilisez les touches fléchées pour vous déplacer</li>
-                <li><strong>ATTENTION :</strong> Les contrôles changent toutes les 20 secondes !</li>
                 <li>Si vous touchez un mur, vous perdez une vie et repartez au début</li>
                 <li>Vous n'avez que 3 vies pour réussir</li>
-                <li>Soyez prêt à vous adapter constamment aux nouveaux contrôles</li>
+                <li>Soyez prêt à vous adapter constamment</li>
             </ul>
         </div>
 
@@ -408,7 +407,7 @@
 
         <canvas id="gameCanvas" width="600" height="600"></canvas>
         <div class="instructions">
-            Attention ! Les contrôles changent toutes les 20 secondes - Restez concentré !
+            Attention !   Restez concentré !
         </div>
     </div>
 
@@ -453,7 +452,7 @@
         const CELL_SIZE = 30;
         const ROWS = 20;
         const COLS = 20;
-        const CONTROL_CHANGE_INTERVAL = 20000; // 20 secondes
+        const CONTROL_CHANGE_INTERVAL = 15000; // 15 secondes
         
         let gameStarted = false;
         let lives = 3;
