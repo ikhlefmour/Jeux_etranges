@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labyrinthe Pac-Man - Simulation Dyspraxie</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #00549F, #B71234);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .welcome-screen {
+            background: #000000;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 3px solid #6697C2;
+            max-width: 800px;
+            text-align: center;
+            color: #FFFFFF;
+        }
+
+        .welcome-title {
+            font-size: 36px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #FFFF00, #00B490);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
+
+        .welcome-subtitle {
+            font-size: 24px;
+            color: #B4007D;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .welcome-text {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .welcome-rules {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .welcome-rules h3 {
+            color: #6BBDB7;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .welcome-rules ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .welcome-rules li {
+            margin: 10px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .welcome-rules li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #FFFF00;
+            font-weight: bold;
+        }
+
+        .btn-start {
+            background: linear-gradient(90deg, #6BBDB7, #00B490);
+            color: #FFFFFF;
+            border: none;
+            padding: 20px 50px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 30px;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(0, 180, 144, 0.5);
+        }
+
+        .game-container {
+            background: #000000;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 3px solid #6697C2;
+            display: none;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(90deg, #B4007D, #00B490);
+            border-radius: 10px;
+        }
+
+        .lives-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .lives-label {
+            color: #FFFFFF;
+            font-size: 18px;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .life {
+            width: 30px;
+            height: 30px;
+            background: #FFFF00;
+            border-radius: 50%;
+            position: relative;
+            margin: 0 5px;
+        }
+
+        .life::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 15px 15px 15px 0;
+            border-color: transparent #000000 transparent transparent;
+            right: 5px;
+            top: 0;
+        }
+
+        .timer-container {
+            color: #FFFFFF;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .btn-play {
+            background: #6BBDB7;
+            color: #000000;
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-play:hover {
+            background: #00B490;
+            transform: scale(1.1);
+        }
+
+        .controls-info {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .controls-title {
+            color: #6BBDB7;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .control-mapping {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #FFFF00;
+        }
+
+        .arrow-key {
+            font-size: 24px;
+            color: #FFFFFF;
+            margin-bottom: 5px;
+        }
+
+        .direction {
+            font-size: 14px;
+            color: #6BBDB7;
+            font-weight: bold;
+        }
+
+        .change-warning {
+            background: #B71234;
+            color: #FFFFFF;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            display: none;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        canvas {
+            display: block;
+            border: 2px solid #717171;
+            border-radius: 5px;
+            background: #000000;
+        }
+
+        .game-over-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .game-over-content {
+            text-align: center;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .game-over-text {
+            font-size: 60px;
+            font-weight: bold;
+            color: #B71234;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+        }
+
+        .btn-replay {
+            background: linear-gradient(90deg, #6BBDB7, #00B490);
+            color: #FFFFFF;
+            border: none;
+            padding: 15px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-replay:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(0, 180, 144, 0.5);
+        }
+
+        .victory-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .victory-content {
+            text-align: center;
+            animation: fadeIn 0.5s;
+        }
+
+        .victory-text {
+            font-size: 60px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #FFFF00, #00B490);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+        }
+
+        .instructions {
+            color: #4D4D4D;
+            background: #FFFFFF;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Écran d'accueil -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-title">Simulation Dyspraxie</div>
+        <div class="welcome-subtitle">Comprendre les défis des élèves dyspraxiques</div>
+        
+        <div class="welcome-text">
+            <p>Ce jeu simule les difficultés rencontrées par les élèves dyspraxiques dans leurs apprentissages. Vous allez expérimenter la frustration de devoir constamment réapprendre et vous adapter à des changements inattendus.</p>
+        </div>
+
+        <div class="welcome-rules">
+            <h3>Règles du jeu :</h3>
+            <ul>
+                <li>Guidez Pac-Man de l'entrée (E) vers la sortie (S)</li>
+                <li>Utilisez les touches fléchées pour vous déplacer</li>
+                <li><strong>ATTENTION :</strong> Les contrôles changent toutes les 20 secondes !</li>
+                <li>Si vous touchez un mur, vous perdez une vie et repartez au début</li>
+                <li>Vous n'avez que 3 vies pour réussir</li>
+                <li>Soyez prêt à vous adapter constamment aux nouveaux contrôles</li>
+            </ul>
+        </div>
+
+        <div class="welcome-text">
+            <p><strong>Objectif pédagogique :</strong> Ressentir l'effort mental constant et la fatigue cognitive que vivent les élèves dyspraxiques au quotidien.</p>
+        </div>
+
+        <button class="btn-start" id="startBtn">COMMENCER L'EXPÉRIENCE</button>
+    </div>
+
+    <!-- Interface de jeu -->
+    <div class="game-container" id="gameContainer">
+        <div class="game-header">
+            <div class="lives-container">
+                <span class="lives-label">VIES:</span>
+                <div class="life" id="life1"></div>
+                <div class="life" id="life2"></div>
+                <div class="life" id="life3"></div>
+            </div>
+            <div class="timer-container">
+                <div>Temps: <span id="timer">00:00</span></div>
+                <div style="font-size: 14px;">Prochain changement: <span id="nextChange">8s</span></div>
+            </div>
+            <button class="btn-play" id="playBtn">JOUER</button>
+        </div>
+
+        <div class="change-warning" id="changeWarning">
+            NOUVEAUX CONTRÔLES !<br>
+            <span style="font-size: 16px;">Adaptez-vous rapidement...</span>
+        </div>
+
+        <div class="controls-info">
+            <div class="controls-title">Contrôles actuels :</div>
+            <div class="controls-grid">
+                <div class="control-mapping">
+                    <div class="arrow-key">↑</div>
+                    <div class="direction" id="upDirection">HAUT</div>
+                </div>
+                <div class="control-mapping">
+                    <div class="arrow-key">↓</div>
+                    <div class="direction" id="downDirection">BAS</div>
+                </div>
+                <div class="control-mapping">
+                    <div class="arrow-key">←</div>
+                    <div class="direction" id="leftDirection">GAUCHE</div>
+                </div>
+                <div class="control-mapping">
+                    <div class="arrow-key">→</div>
+                    <div class="direction" id="rightDirection">DROITE</div>
+                </div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <div class="instructions">
+            Attention ! Les contrôles changent toutes les 20 secondes - Restez concentré !
+        </div>
+    </div>
+
+    <div class="game-over-overlay" id="gameOverOverlay">
+        <div class="game-over-content">
+            <div class="game-over-text">GAME OVER</div>
+            <div style="color: #FFFFFF; margin-bottom: 20px; font-size: 18px;">
+                Temps total: <span id="finalTime"></span><br>
+                Changements de contrôles subis: <span id="totalChanges"></span>
+            </div>
+            <button class="btn-replay" id="replayBtn">RECOMMENCER</button>
+        </div>
+    </div>
+
+    <div class="victory-overlay" id="victoryOverlay">
+        <div class="victory-content">
+            <div class="victory-text">FÉLICITATIONS!</div>
+            <div style="color: #FFFFFF; margin-bottom: 20px; font-size: 18px;">
+                Temps total: <span id="victoryTime"></span><br>
+                Changements de contrôles subis: <span id="victoryChanges"></span><br>
+                <strong>Vous avez vécu une simulation de dyspraxie !</strong>
+            </div>
+            <button class="btn-replay" id="victoryReplayBtn">RECOMMENCER</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const gameContainer = document.getElementById('gameContainer');
+        const startBtn = document.getElementById('startBtn');
+        const playBtn = document.getElementById('playBtn');
+        const replayBtn = document.getElementById('replayBtn');
+        const victoryReplayBtn = document.getElementById('victoryReplayBtn');
+        const gameOverOverlay = document.getElementById('gameOverOverlay');
+        const victoryOverlay = document.getElementById('victoryOverlay');
+        const changeWarning = document.getElementById('changeWarning');
+        const timerDisplay = document.getElementById('timer');
+        const nextChangeDisplay = document.getElementById('nextChange');
+
+        const CELL_SIZE = 30;
+        const ROWS = 20;
+        const COLS = 20;
+        const CONTROL_CHANGE_INTERVAL = 20000; // 20 secondes
+        
+        let gameStarted = false;
+        let lives = 3;
+        let startTime = 0;
+        let gameTimer = 0;
+        let controlChangeTimer = 0;
+        let controlChangesCount = 0;
+        let lastControlChange = 0;
+        
+        let pacman = {
+            x: 1,
+            y: 1,
+            direction: 'right',
+            mouthOpen: true,
+            animationTimer: 0
+        };
+
+        // Mapping des contrôles (peut changer)
+        let controlMapping = {
+            'ArrowUp': 'up',
+            'ArrowDown': 'down',
+            'ArrowLeft': 'left',
+            'ArrowRight': 'right'
+        };
+
+        const directions = ['up', 'down', 'left', 'right'];
+        const directionNames = {
+            'up': 'HAUT',
+            'down': 'BAS',
+            'left': 'GAUCHE',
+            'right': 'DROITE'
+        };
+
+        // Définition du labyrinthe (1 = mur, 0 = chemin, 2 = entrée, 3 = sortie)
+        const maze = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,2,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,1,1,1,0,1,0,1,1,1,1,0,1,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,0,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,1,0,1,1,0,1,1,0,1,1,1,1,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,1,1,0,1,1,0,1,1,0,1,1,1,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,0,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function changeControlMapping() {
+            const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+            const shuffledDirections = shuffleArray(directions);
+            
+            controlMapping = {};
+            keys.forEach((key, index) => {
+                controlMapping[key] = shuffledDirections[index];
+            });
+            
+            updateControlDisplay();
+            showChangeWarning();
+            controlChangesCount++;
+        }
+
+        function updateControlDisplay() {
+            document.getElementById('upDirection').textContent = directionNames[controlMapping['ArrowUp']];
+            document.getElementById('downDirection').textContent = directionNames[controlMapping['ArrowDown']];
+            document.getElementById('leftDirection').textContent = directionNames[controlMapping['ArrowLeft']];
+            document.getElementById('rightDirection').textContent = directionNames[controlMapping['ArrowRight']];
+        }
+
+        function showChangeWarning() {
+            changeWarning.style.display = 'block';
+            setTimeout(() => {
+                changeWarning.style.display = 'none';
+            }, 2000);
+        }
+
+        function formatTime(ms) {
+            const minutes = Math.floor(ms / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimer() {
+            if (!gameStarted) return;
+            
+            const currentTime = Date.now();
+            gameTimer = currentTime - startTime;
+            timerDisplay.textContent = formatTime(gameTimer);
+            
+            const timeSinceLastChange = currentTime - lastControlChange;
+            const timeToNextChange = CONTROL_CHANGE_INTERVAL - timeSinceLastChange;
+            
+            if (timeToNextChange <= 0) {
+                changeControlMapping();
+                lastControlChange = currentTime;
+            } else {
+                const secondsToNext = Math.ceil(timeToNextChange / 1000);
+                nextChangeDisplay.textContent = `${secondsToNext}s`;
+            }
+        }
+
+        function drawMaze() {
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    const cell = maze[row][col];
+                    const x = col * CELL_SIZE;
+                    const y = row * CELL_SIZE;
+                    
+                    if (cell === 1) {
+                        ctx.fillStyle = '#00549F';
+                        ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+                        ctx.strokeStyle = '#6697C2';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+                    } else if (cell === 2) {
+                        ctx.fillStyle = '#00B490';
+                        ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('E', x + CELL_SIZE/2, y + CELL_SIZE/2);
+                    } else if (cell === 3) {
+                        ctx.fillStyle = '#B4007D';
+                        ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('S', x + CELL_SIZE/2, y + CELL_SIZE/2);
+                    }
+                }
+            }
+        }
+
+        function drawPacman() {
+            const x = pacman.x * CELL_SIZE + CELL_SIZE / 2;
+            const y = pacman.y * CELL_SIZE + CELL_SIZE / 2;
+            const radius = CELL_SIZE / 2 - 4;
+            
+            ctx.save();
+            ctx.translate(x, y);
+            
+            let rotationAngle = 0;
+            if (pacman.direction === 'right') rotationAngle = 0;
+            else if (pacman.direction === 'left') rotationAngle = Math.PI;
+            else if (pacman.direction === 'up') rotationAngle = -Math.PI / 2;
+            else if (pacman.direction === 'down') rotationAngle = Math.PI / 2;
+            
+            ctx.rotate(rotationAngle);
+            
+            ctx.fillStyle = '#FFFF00';
+            ctx.beginPath();
+            
+            const mouthAngle = pacman.mouthOpen ? 0.3 : 0.1;
+            ctx.arc(0, 0, radius, mouthAngle * Math.PI, (2 - mouthAngle) * Math.PI);
+            ctx.lineTo(0, 0);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+            
+            pacman.animationTimer++;
+            if (pacman.animationTimer % 10 === 0) {
+                pacman.mouthOpen = !pacman.mouthOpen;
+            }
+        }
+
+        function updateLives() {
+            for (let i = 1; i <= 3; i++) {
+                const lifeElement = document.getElementById(`life${i}`);
+                if (i <= lives) {
+                    lifeElement.style.display = 'block';
+                } else {
+                    lifeElement.style.display = 'none';
+                }
+            }
+        }
+
+        function resetPacman() {
+            pacman.x = 1;
+            pacman.y = 1;
+            pacman.direction = 'right';
+        }
+
+        function checkCollision(x, y) {
+            return maze[y][x] === 1;
+        }
+
+        function checkVictory() {
+            return maze[pacman.y][pacman.x] === 3;
+        }
+
+        function movePacman(direction) {
+            if (!gameStarted) return;
+            
+            let newX = pacman.x;
+            let newY = pacman.y;
+            
+            if (direction === 'up') newY--;
+            else if (direction === 'down') newY++;
+            else if (direction === 'left') newX--;
+            else if (direction === 'right') newX++;
+            
+            pacman.direction = direction;
+            
+            if (newX >= 0 && newX < COLS && newY >= 0 && newY < ROWS) {
+                if (!checkCollision(newX, newY)) {
+                    pacman.x = newX;
+                    pacman.y = newY;
+                    
+                    if (checkVictory()) {
+                        gameStarted = false;
+                        document.getElementById('victoryTime').textContent = formatTime(gameTimer);
+                        document.getElementById('victoryChanges').textContent = controlChangesCount;
+                        victoryOverlay.style.display = 'flex';
+                    }
+                } else {
+                    loseLife();
+                }
+            } else {
+                loseLife();
+            }
+        }
+
+        function loseLife() {
+            lives--;
+            updateLives();
+            resetPacman();
+            
+            if (lives <= 0) {
+                gameStarted = false;
+                document.getElementById('finalTime').textContent = formatTime(gameTimer);
+                document.getElementById('totalChanges').textContent = controlChangesCount;
+                gameOverOverlay.style.display = 'flex';
+            }
+        }
+
+        function startGame() {
+            gameStarted = true;
+            lives = 3;
+            controlChangesCount = 0;
+            startTime = Date.now();
+            lastControlChange = startTime;
+            updateLives();
+            resetPacman();
+            gameOverOverlay.style.display = 'none';
+            victoryOverlay.style.display = 'none';
+            playBtn.style.display = 'none';
+            
+            // Réinitialiser les contrôles
+            controlMapping = {
+                'ArrowUp': 'up',
+                'ArrowDown': 'down',
+                'ArrowLeft': 'left',
+                'ArrowRight': 'right'
+            };
+            updateControlDisplay();
+            
+            gameLoop();
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawMaze();
+            if (gameStarted) {
+                drawPacman();
+                updateTimer();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function showGame() {
+            welcomeScreen.style.display = 'none';
+            gameContainer.style.display = 'block';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!gameStarted) return;
+            
+            const mappedDirection = controlMapping[e.key];
+            if (mappedDirection) {
+                e.preventDefault();
+                movePacman(mappedDirection);
+            }
+        });
+
+        startBtn.addEventListener('click', showGame);
+        playBtn.addEventListener('click', startGame);
+        replayBtn.addEventListener('click', () => {
+            gameOverOverlay.style.display = 'none';
+            playBtn.style.display = 'block';
+        });
+        victoryReplayBtn.addEventListener('click', () => {
+            victoryOverlay.style.display = 'none';
+            playBtn.style.display = 'block';
+        });
+
+        // Initialisation
+        drawMaze();
+        updateLives();
+        updateControlDisplay();
+    </script>
+</body>
+</html>

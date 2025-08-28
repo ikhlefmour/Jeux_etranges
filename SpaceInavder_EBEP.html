@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Invaders - Permutation Dynamique</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #00ff00;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Écran d'accueil */
+        #welcomeScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000033, #000066, #000033);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        #welcomeScreen h1 {
+            font-size: 3em;
+            color: #00ff00;
+            text-shadow: 0 0 20px #00ff00;
+            margin-bottom: 30px;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00ff00; }
+            to { text-shadow: 0 0 30px #00ff00, 0 0 40px #00ff00; }
+        }
+
+        #welcomeContent {
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 3px solid #ffff00;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 255, 0, 0.5);
+        }
+
+        #welcomeContent h2 {
+            color: #ff0000;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+        #gameRules {
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+
+        .rule-highlight {
+            color: #ffff00;
+            font-weight: bold;
+            text-shadow: 0 0 5px #ffff00;
+        }
+
+        .warning {
+            color: #ff4444;
+            font-size: 1.3em;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ff4444;
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #ff4444;
+            border-radius: 10px;
+            background-color: rgba(255, 68, 68, 0.1);
+        }
+
+        #startGameBtn {
+            padding: 15px 40px;
+            font-size: 1.5em;
+            background: linear-gradient(45deg, #00ff00, #00cc00);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        #startGameBtn:hover {
+            background: linear-gradient(45deg, #00cc00, #009900);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.8);
+            transform: scale(1.05);
+        }
+
+        /* Styles du jeu (masqués initialement) */
+        #gameContainer {
+            display: none;
+        }
+
+        #gameInfo {
+            display: flex;
+            justify-content: space-between;
+            width: 800px;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #score {
+            color: #00ff00;
+        }
+
+        #timer {
+            color: #00ffff;
+        }
+
+        #controlsLegend {
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffff00;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            width: 770px;
+        }
+
+        #controlsLegend h3 {
+            color: #ffff00;
+            margin: 0 0 10px 0;
+            text-align: center;
+        }
+
+        #controlsGrid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            text-align: center;
+        }
+
+        .control-item {
+            background-color: rgba(255, 255, 0, 0.2);
+            padding: 8px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        .control-key {
+            color: #ffff00;
+            font-weight: bold;
+        }
+
+        .control-action {
+            color: #fff;
+        }
+
+        #gameCanvas {
+            border: 2px solid #fff;
+            background-color: #000;
+            display: block;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ff0000;
+            padding: 30px;
+            text-align: center;
+            display: none;
+        }
+
+        #gameOver h2 {
+            color: #ff0000;
+            margin-bottom: 20px;
+        }
+
+        #restartBtn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #00ff00;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        #restartBtn:hover {
+            background-color: #00cc00;
+        }
+
+        #permutationTimer {
+            color: #ff8800;
+            font-size: 16px;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Écran d'accueil -->
+    <div id="welcomeScreen">
+        <h1>SPACE INVADERS</h1>
+        <div id="welcomeContent">
+            <h2>⚠️ ATTENTION PILOTE ⚠️</h2>
+            <div id="gameRules">
+                <p><span class="rule-highlight">Barre espace :</span> Tirer sur les envahisseurs</p>
+                
+                <div class="warning">
+                    🔄 Les contrôles de direction changent toutes les 10 secondes ! 🔄
+                </div>
+                
+                <p>Restez vigilant et adaptez-vous rapidement aux nouveaux contrôles pour survivre à l'invasion !</p>
+                
+                <p style="font-size: 0.9em; color: #cccccc; margin-top: 20px;">
+                    Utilisez les flèches directionnelles pour vous déplacer.<br>
+                    Détruisez tous les envahisseurs avant qu'ils n'atteignent votre position !
+                </p>
+            </div>
+            <button id="startGameBtn">🚀 COMMENCER LA MISSION 🚀</button>
+        </div>
+    </div>
+
+    <!-- Container du jeu -->
+    <div id="gameContainer">
+        <h1>Space Invaders - Permutation Dynamique</h1>
+        
+        <div id="gameInfo">
+            <div id="score">Score: 0</div>
+            <div id="timer">Temps: 00:00</div>
+        </div>
+        
+        <div id="controlsLegend">
+            <h3>Contrôles Actuels</h3>
+            <div id="controlsGrid">
+                <div class="control-item">
+                    <div class="control-key">←</div>
+                    <div class="control-action" id="leftAction">Gauche</div>
+                </div>
+                <div class="control-item">
+                    <div class="control-key">→</div>
+                    <div class="control-action" id="rightAction">Droite</div>
+                </div>
+                <div class="control-item">
+                    <div class="control-key">↑</div>
+                    <div class="control-action" id="upAction">Haut</div>
+                </div>
+                <div class="control-item">
+                    <div class="control-key">↓</div>
+                    <div class="control-action" id="downAction">Bas</div>
+                </div>
+            </div>
+            <div id="permutationTimer">Prochaine permutation dans: 10s</div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div id="gameOver">
+            <h2>Game Over!</h2>
+            <p>Score final: <span id="finalScore">0</span></p>
+            <p>Temps: <span id="finalTime">00:00</span></p>
+            <button id="restartBtn">Rejouer</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const timerElement = document.getElementById('timer');
+        const gameOverDiv = document.getElementById('gameOver');
+        const finalScoreElement = document.getElementById('finalScore');
+        const finalTimeElement = document.getElementById('finalTime');
+        const restartBtn = document.getElementById('restartBtn');
+        const permutationTimerElement = document.getElementById('permutationTimer');
+        
+        // Éléments d'écran d'accueil
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const gameContainer = document.getElementById('gameContainer');
+        const startGameBtn = document.getElementById('startGameBtn');
+
+        // Éléments de la légende des contrôles
+        const leftActionElement = document.getElementById('leftAction');
+        const rightActionElement = document.getElementById('rightAction');
+        const upActionElement = document.getElementById('upAction');
+        const downActionElement = document.getElementById('downAction');
+
+        // Variables du jeu
+        let gameRunning = false;
+        let score = 0;
+        let startTime = 0;
+        let gameTime = 0;
+        let animationId;
+        let lastPermutationTime = 0;
+        let nextPermutationTime = 10000; // 10 secondes
+
+        // Conversion approximative: 1cm ≈ 38px, 5mm ≈ 19px
+        const player = {
+            x: 0,
+            y: 0,
+            width: 38,
+            height: 19,
+            speed: 5
+        };
+
+        let playerMissiles = [];
+        let enemies = [];
+        let enemyMissiles = [];
+
+        // Touches pressées
+        const keys = {};
+
+        // Mapping des contrôles (actions possibles)
+        const actions = ['left', 'right', 'up', 'down'];
+        const actionNames = {
+            'left': 'Gauche',
+            'right': 'Droite',
+            'up': 'Haut',
+            'down': 'Bas'
+        };
+
+        // Mapping actuel des touches vers les actions
+        let keyMapping = {
+            'ArrowLeft': 'left',
+            'ArrowRight': 'right',
+            'ArrowUp': 'up',
+            'ArrowDown': 'down'
+        };
+
+        // Bouton pour démarrer le jeu
+        startGameBtn.addEventListener('click', () => {
+            welcomeScreen.style.display = 'none';
+            gameContainer.style.display = 'flex';
+            gameContainer.style.flexDirection = 'column';
+            gameContainer.style.alignItems = 'center';
+            initGame();
+        });
+
+        // Fonction pour mélanger un tableau
+        function shuffle(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Fonction pour permuter les contrôles
+        function permuteControls() {
+            const shuffledActions = shuffle(actions);
+            const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+            
+            for (let i = 0; i < keys.length; i++) {
+                keyMapping[keys[i]] = shuffledActions[i];
+            }
+            
+            updateControlsDisplay();
+            lastPermutationTime = Date.now() - startTime;
+        }
+
+        // Mettre à jour l'affichage des contrôles
+        function updateControlsDisplay() {
+            leftActionElement.textContent = actionNames[keyMapping['ArrowLeft']];
+            rightActionElement.textContent = actionNames[keyMapping['ArrowRight']];
+            upActionElement.textContent = actionNames[keyMapping['ArrowUp']];
+            downActionElement.textContent = actionNames[keyMapping['ArrowDown']];
+        }
+
+        // Initialisation des ennemis
+        function createEnemies() {
+            enemies = [];
+            const rows = 5;
+            const cols = 10;
+            const enemyWidth = 30;
+            const enemyHeight = 20;
+            const spacing = 10;
+            
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    enemies.push({
+                        x: col * (enemyWidth + spacing) + 50,
+                        y: row * (enemyHeight + spacing) + 50,
+                        width: enemyWidth,
+                        height: enemyHeight,
+                        direction: 1
+                    });
+                }
+            }
+        }
+
+        // Gestion des événements clavier
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Mise à jour du joueur
+        function updatePlayer() {
+            // Mouvement basé sur le mapping actuel
+            if (keys['ArrowLeft']) {
+                const action = keyMapping['ArrowLeft'];
+                movePlayer(action);
+            }
+            if (keys['ArrowRight']) {
+                const action = keyMapping['ArrowRight'];
+                movePlayer(action);
+            }
+            if (keys['ArrowUp']) {
+                const action = keyMapping['ArrowUp'];
+                movePlayer(action);
+            }
+            if (keys['ArrowDown']) {
+                const action = keyMapping['ArrowDown'];
+                movePlayer(action);
+            }
+            
+            // Tir avec barre espace
+            if (keys[' ']) {
+                shoot();
+                keys[' '] = false;
+            }
+        }
+
+        // Fonction pour déplacer le joueur selon l'action
+        function movePlayer(action) {
+            switch(action) {
+                case 'left':
+                    if (player.x > 0) {
+                        player.x -= player.speed;
+                    }
+                    break;
+                case 'right':
+                    if (player.x < canvas.width - player.width) {
+                        player.x += player.speed;
+                    }
+                    break;
+                case 'up':
+                    if (player.y > 0) {
+                        player.y -= player.speed;
+                    }
+                    break;
+                case 'down':
+                    if (player.y < canvas.height - player.height) {
+                        player.y += player.speed;
+                    }
+                    break;
+            }
+        }
+
+        // Tir du joueur
+        function shoot() {
+            playerMissiles.push({
+                x: player.x + player.width / 2 - 2,
+                y: player.y,
+                width: 4,
+                height: 10,
+                speed: 7
+            });
+        }
+
+        // Mise à jour des missiles du joueur
+        function updatePlayerMissiles() {
+            for (let i = playerMissiles.length - 1; i >= 0; i--) {
+                const missile = playerMissiles[i];
+                missile.y -= missile.speed;
+                
+                if (missile.y < 0) {
+                    playerMissiles.splice(i, 1);
+                }
+            }
+        }
+
+        // Mise à jour des ennemis
+        function updateEnemies() {
+            if (enemies.length === 0) return;
+            
+            let shouldDrop = false;
+            
+            for (let enemy of enemies) {
+                if ((enemy.x <= 0 && enemy.direction === -1) || 
+                    (enemy.x >= canvas.width - enemy.width && enemy.direction === 1)) {
+                    shouldDrop = true;
+                    break;
+                }
+            }
+            
+            for (let enemy of enemies) {
+                if (shouldDrop) {
+                    enemy.direction *= -1;
+                    enemy.y += 20;
+                } else {
+                    enemy.x += enemy.direction * 0.5;
+                }
+                
+                if (Math.random() < 0.0005) {
+                    enemyMissiles.push({
+                        x: enemy.x + enemy.width / 2 - 2,
+                        y: enemy.y + enemy.height,
+                        width: 4,
+                        height: 10,
+                        speed: 3
+                    });
+                }
+            }
+        }
+
+        // Mise à jour des missiles ennemis
+        function updateEnemyMissiles() {
+            for (let i = enemyMissiles.length - 1; i >= 0; i--) {
+                const missile = enemyMissiles[i];
+                missile.y += missile.speed;
+                
+                if (missile.y > canvas.height) {
+                    enemyMissiles.splice(i, 1);
+                }
+            }
+        }
+
+        // Détection des collisions
+        function checkCollisions() {
+            // Collisions missiles joueur vs ennemis
+            for (let i = playerMissiles.length - 1; i >= 0; i--) {
+                const missile = playerMissiles[i];
+                
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    
+                    if (missile.x < enemy.x + enemy.width &&
+                        missile.x + missile.width > enemy.x &&
+                        missile.y < enemy.y + enemy.height &&
+                        missile.y + missile.height > enemy.y) {
+                        
+                        playerMissiles.splice(i, 1);
+                        enemies.splice(j, 1);
+                        score += 10;
+                        updateScore();
+                        break;
+                    }
+                }
+            }
+            
+            // Collisions missiles ennemis vs joueur
+            for (let i = enemyMissiles.length - 1; i >= 0; i--) {
+                const missile = enemyMissiles[i];
+                
+                if (missile.x < player.x + player.width &&
+                    missile.x + missile.width > player.x &&
+                    missile.y < player.y + player.height &&
+                    missile.y + missile.height > player.y) {
+                    
+                    gameOver();
+                    return;
+                }
+            }
+            
+            // Vérifier si les ennemis atteignent le joueur
+            for (let enemy of enemies) {
+                if (enemy.y + enemy.height >= player.y) {
+                    gameOver();
+                    return;
+                }
+            }
+        }
+
+        // Rendu du jeu
+        function render() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dessiner le joueur
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            // Dessiner les missiles du joueur
+            ctx.fillStyle = '#ffffff';
+            for (let missile of playerMissiles) {
+                ctx.fillRect(missile.x, missile.y, missile.width, missile.height);
+            }
+            
+            // Dessiner les ennemis
+            ctx.fillStyle = '#ff0000';
+            for (let enemy of enemies) {
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+            }
+            
+            // Dessiner les missiles ennemis
+            ctx.fillStyle = '#ffff00';
+            for (let missile of enemyMissiles) {
+                ctx.fillRect(missile.x, missile.y, missile.width, missile.height);
+            }
+        }
+
+        // Mise à jour du score
+        function updateScore() {
+            scoreElement.textContent = `Score: ${score}`;
+        }
+
+        // Mise à jour du chronomètre et du timer de permutation
+        function updateTimers() {
+            if (gameRunning) {
+                gameTime = Date.now() - startTime;
+                const minutes = Math.floor(gameTime / 60000);
+                const seconds = Math.floor((gameTime % 60000) / 1000);
+                timerElement.textContent = `Temps: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Vérifier si il faut permuter les contrôles
+                const timeSinceLastPermutation = gameTime - lastPermutationTime;
+                if (timeSinceLastPermutation >= nextPermutationTime) {
+                    permuteControls();
+                }
+                
+                // Mettre à jour le timer de permutation
+                const timeUntilNextPermutation = nextPermutationTime - timeSinceLastPermutation;
+                const secondsUntilPermutation = Math.ceil(timeUntilNextPermutation / 1000);
+                permutationTimerElement.textContent = `Prochaine permutation dans: ${secondsUntilPermutation}s`;
+            }
+        }
+
+        // Boucle de jeu principale
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            updatePlayer();
+            updatePlayerMissiles();
+            updateEnemies();
+            updateEnemyMissiles();
+            checkCollisions();
+            render();
+            updateTimers();
+            
+            if (enemies.length === 0) {
+                createEnemies();
+            }
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // Game Over
+        function gameOver() {
+            gameRunning = false;
+            cancelAnimationFrame(animationId);
+            
+            finalScoreElement.textContent = score;
+            const minutes = Math.floor(gameTime / 60000);
+            const seconds = Math.floor((gameTime % 60000) / 1000);
+            finalTimeElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            gameOverDiv.style.display = 'block';
+        }
+
+        // Initialisation du jeu
+        function initGame() {
+            gameRunning = true;
+            score = 0;
+            startTime = Date.now();
+            gameTime = 0;
+            lastPermutationTime = 0;
+            
+            // Réinitialiser les positions
+            player.x = canvas.width / 2 - player.width / 2;
+            player.y = canvas.height - 150;
+            
+            // Vider les missiles
+            playerMissiles = [];
+            enemyMissiles = [];
+            
+            // Réinitialiser les touches
+            for (let key in keys) {
+                keys[key] = false;
+            }
+            
+            // Réinitialiser les contrôles
+            keyMapping = {
+                'ArrowLeft': 'left',
+                'ArrowRight': 'right',
+                'ArrowUp': 'up',
+                'ArrowDown': 'down'
+            };
+            updateControlsDisplay();
+            
+            // Créer les ennemis
+            createEnemies();
+            
+            // Mettre à jour l'affichage
+            updateScore();
+            updateTimers();
+            
+            // Cacher le game over
+            gameOverDiv.style.display = 'none';
+            
+            // Démarrer la boucle de jeu
+            gameLoop();
+        }
+
+        // Bouton rejouer
+        restartBtn.addEventListener('click', initGame);
+    </script>
+</body>
+</html>

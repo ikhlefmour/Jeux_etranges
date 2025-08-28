@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paint Application</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .instructions {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: #fff;
+            border: 2px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 14px;
+            line-height: 1.4;
+            z-index: 10;
+            white-space: pre-line;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"] {
+            width: 100px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .eraser-btn {
+            background-color: #ff6b6b;
+            color: white;
+        }
+
+        .eraser-btn:hover {
+            background-color: #ff5252;
+        }
+
+        .eraser-btn.active {
+            background-color: #d32f2f;
+        }
+
+        .clear-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .clear-btn:hover {
+            background-color: #45a049;
+        }
+
+        #canvas {
+            border: 3px solid #333;
+            border-radius: 5px;
+            cursor: crosshair;
+            background-color: white;
+            display: block;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .instructions {
+                position: relative;
+                margin-bottom: 15px;
+                font-size: 12px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .control-group {
+                justify-content: center;
+            }
+            
+            input[type="range"] {
+                width: 150px;
+            }
+        }
+
+        .size-display {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="instructions">1. Ecrivez votre nom et prénom
+2. Ecrivez le texte : 'Dyspraxique : mode difficile activé'.</div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="colorPicker">Couleur:</label>
+                <input type="color" id="colorPicker" value="#000000">
+            </div>
+            
+            <div class="control-group">
+                <label for="penSize">Taille:</label>
+                <input type="range" id="penSize" min="1" max="50" value="5">
+                <span class="size-display" id="sizeDisplay">5px</span>
+            </div>
+            
+            <button id="eraserBtn" class="eraser-btn">Gomme</button>
+            <button id="clearBtn" class="clear-btn">Effacer tout</button>
+        </div>
+        
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('colorPicker');
+        const penSize = document.getElementById('penSize');
+        const sizeDisplay = document.getElementById('sizeDisplay');
+        const eraserBtn = document.getElementById('eraserBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let isEraserMode = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        // Set canvas size responsively
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = Math.min(600, window.innerHeight * 0.6);
+            
+            // Restore canvas properties after resize
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
+        // Initial setup
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Update pen size display
+        penSize.addEventListener('input', () => {
+            sizeDisplay.textContent = penSize.value + 'px';
+        });
+
+        // Eraser toggle
+        eraserBtn.addEventListener('click', () => {
+            isEraserMode = !isEraserMode;
+            eraserBtn.classList.toggle('active');
+            eraserBtn.textContent = isEraserMode ? 'Mode normal' : 'Gomme';
+            canvas.style.cursor = isEraserMode ? 'grab' : 'crosshair';
+        });
+
+        // Clear canvas
+        clearBtn.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Mouse events
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const currentMouseX = e.clientX;
+            const currentMouseY = e.clientY;
+            
+            // Calculate mouse movement direction
+            const deltaX = currentMouseX - lastMouseX;
+            const deltaY = currentMouseY - lastMouseY;
+            
+            // COMPLETE REVERSAL: Simulate dyslexic difficulties
+            // Mouse right → draw left, Mouse left → draw right
+            // Mouse up → draw down, Mouse down → draw up
+            const currentX = lastX - deltaX;  // Completely reverse X movement
+            const currentY = lastY - deltaY;  // Completely reverse Y movement
+
+            ctx.globalCompositeOperation = isEraserMode ? 'destination-out' : 'source-over';
+            ctx.strokeStyle = isEraserMode ? 'rgba(0,0,0,1)' : colorPicker.value;
+            ctx.lineWidth = penSize.value;
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+
+            lastX = currentX;
+            lastY = currentY;
+            lastMouseX = currentMouseX;
+            lastMouseY = currentMouseY;
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        // Touch events for mobile support
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            lastX = touch.clientX - rect.left;
+            lastY = touch.clientY - rect.top;
+            lastMouseX = touch.clientX;
+            lastMouseY = touch.clientY;
+            isDrawing = true;
+        }
+
+        function handleTouchMove(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const currentMouseX = touch.clientX;
+            const currentMouseY = touch.clientY;
+            
+            // Calculate touch movement direction
+            const deltaX = currentMouseX - lastMouseX;
+            const deltaY = currentMouseY - lastMouseY;
+            
+            // COMPLETE REVERSAL: Simulate dyslexic difficulties
+            // Touch right → draw left, Touch left → draw right
+            // Touch up → draw down, Touch down → draw up
+            const currentX = lastX - deltaX;  // Completely reverse X movement
+            const currentY = lastY - deltaY;  // Completely reverse Y movement
+
+            ctx.globalCompositeOperation = isEraserMode ? 'destination-out' : 'source-over';
+            ctx.strokeStyle = isEraserMode ? 'rgba(0,0,0,1)' : colorPicker.value;
+            ctx.lineWidth = penSize.value;
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+
+            lastX = currentX;
+            lastY = currentY;
+            lastMouseX = currentMouseX;
+            lastMouseY = currentMouseY;
+        }
+    </script>
+</body>
+</html>
